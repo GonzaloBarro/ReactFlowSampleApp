@@ -1,26 +1,16 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import ReactFlow from 'react-flow-renderer';
+
+const elements = [
+  { id: "1", data: { label: "Parent" }, position: { x: 500, y: 150 } },
+  { id: "2", data: { label: "First child" }, position: { x: 400, y: 250 } },
+  { id: "e1-2", source: "1", target: "2", animated: true }
+];
+
+const BasicGraph = () => <ReactFlow elements={elements} />;
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+  return <BasicGraph />;
 }
 
 export default App;
