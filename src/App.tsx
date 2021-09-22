@@ -1,5 +1,12 @@
 import React, {useState} from 'react';
-import ReactFlow, {Node, Elements, ElementId} from 'react-flow-renderer';
+import ReactFlow, {
+  addEdge,
+  Node,
+  Elements,
+  ElementId,
+  Connection,
+  Edge
+} from 'react-flow-renderer';
 
 const basicElements = [
   { id: "1", data: { label: "Parent" }, position: { x: 500, y: 150 } },
@@ -12,6 +19,8 @@ const graphStyles = { width: "100%", height: "500px" };
 function App() {
   const [elements, setElements] = useState<Elements>(basicElements);
 
+  const onConnect = (params: Connection | Edge) => setElements((els) => addEdge(params, els));
+
   const addNode = () => {
     const nodeId: ElementId = (elements.length + 1).toString();
     const newNode: Node = {
@@ -22,10 +31,14 @@ function App() {
     setElements((els) => els.concat(newNode));
   };
 
-  const BasicGraph = () => <ReactFlow elements={elements} style={graphStyles}>
-      <button type="button" onClick={addNode} style={{ position: 'absolute', left: 10, top: 10, zIndex: 4 }}>
-        add node
-      </button>
+  const BasicGraph = () => <ReactFlow
+    elements={elements}
+    style={graphStyles}
+    onConnect={(p) => onConnect(p)}
+  >
+    <button type="button" onClick={addNode} style={{ position: 'absolute', left: 10, top: 10, zIndex: 4 }}>
+      add node
+    </button>
   </ReactFlow>;
 
   return <BasicGraph />;
