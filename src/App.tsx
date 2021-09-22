@@ -7,7 +7,9 @@ const elements = [
   { id: "e1-2", source: "1", target: "2", animated: true }
 ];
 
-const BasicGraph = () => <ReactFlow elements={elements} />;
+const graphStyles = { width: "100%", height: "500px" };
+
+const BasicGraph = () => <ReactFlow elements={elements} style={graphStyles} />;
 
 function App() {
   return <BasicGraph />;
