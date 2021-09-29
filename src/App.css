@@ -7,18 +7,36 @@
   height: 15px;
 }
 
+.Adder:focus {
+  background-color: aquamarine;
+}
+
 .Email {
   border: 1px solid #000000;
-  padding: 10px;
+  padding: 8px;
   width: 40px;
   border-radius: 10px;
+}
+
+.Email:focus {
+  background-color: aquamarine;
+}
+
+.Campaign {
+  border: 1px solid #000000;
+  width: 150px;
+  padding: 8.5px;
+}
+
+.Campaign:focus {
+  background-color: aquamarine;
 }
 
 .CampaignButton {
   position: absolute;
   left: 10px;
   top: 10px;
-  z-index: 4px;
+  z-index: 4;
 }
 
 .Entry {

@@ -13,89 +13,139 @@ import ReactFlow, {
 import './App.css';
 
 const basicElements = [
-  { id: "1", data: { label: "Playbook Entry" }, position: { x: 10, y: 50 }, draggable: false }
+  { id: "0", data: { label: "Playbook Entry" }, position: { x: 10, y: 50 }, draggable: false }
 ];
 
 const graphStyles = { width: "100%", height: "500px" };
 
 const isAdder = (value: any): value is Node => !!value.position && value.type === 'adder';
 
-const AdderControl: FC<NodeProps> = () => {
-  return <div className="Adder">+</div>;
+const AdderControl: FC<NodeProps> = props => {
+  return <div className="Adder" tabIndex={props.data.tabindex}>+</div>;
 };
 
-const SendEmailControl: FC<NodeProps> = () => {
-  return <div className="Email">EMail</div>
+const SendEmailControl: FC<NodeProps> = props => {
+  return <div className="Email" tabIndex={props.data.tabindex}>EMail</div>
+}
+
+const CampaignNode: FC<NodeProps> = ({data}) => {
+  return <div className="Campaign" tabIndex={data.tabindex}>{data.label}</div>
+}
+
+const nodeTypes = {
+  adder: AdderControl,
+  email: SendEmailControl,
+  campaign: CampaignNode
+};
+
+interface ElementIndex {
+  element: ElementId;
+  index: number;
+}
+
+interface TabIndex {
+  campaign: ElementId;
+  index: number;
+  controls: ElementIndex[]
+}
+
+type TabIndexes = Array<TabIndex>;
+
+interface Nodes {
+  campaigns: number,
+  emails: number,
+  adders: number,
+  total: number
 }
 
 function App() {
   const [elements, setElements] = useState<Elements>(basicElements);
-  const [lastNode, setLastNode] = useState<ElementId | null>(null);
-  const [nodes, setNodes] = useState<number>(0);
-    
+  const [lastCampaign, setLastCampaign] = useState<ElementId | null>(null);
+  const [nodes, setNodes] = useState<Nodes>({
+    campaigns: 0,
+    emails: 0,
+    adders: 0,
+    total: 0
+  })
+
+  const handleSelectionChange = (e: any) => console.log(e);
+
   const onConnect = (params: Connection | Edge): void => setElements((els) => addEdge(params, els));
 
   const onElementClick = (_: MouseEvent, element: FlowElement): void => {
+    console.log('onElementClick:');
+
     if (!isAdder(element)) {
       return;
     }
 
     const newElements = elements.filter(flowElement => flowElement.id !== element.id);
-
-    const controlId: ElementId = `${element.position.x}-${element.position.y}`;
+    const controlId: ElementId = `${element.data.campaign}-${nodes.emails}`;
     const newControl: FlowElement = {
       ...element,
       type: 'email',
       id: controlId,
-      data: { label: `Control ${controlId}` },
+      data: { label: `Control ${controlId}`, tabindex: nodes.total, campaign: element.data.campaign },
     }
-    delete newControl.style;
-
+    
     const newAdder: FlowElement = {
       ...element,
-      position: { x: element.position.x + 70, y: element.position.y }
+      position: { x: element.position.x + 70, y: element.position.y },
+      data: {...element.data, tabindex: nodes.total + 1}
     }
-    newElements.push(newControl, newAdder);
-    setElements(newElements);
+    setNodes({
+      campaigns: nodes.campaigns,
+      emails: nodes.emails + 1,
+      adders: nodes.adders,
+      total: nodes.total + 1
+    });
+    setElements([...newElements, newControl, newAdder]);
   };
 
-  const addNode = () => {
-    const nodeId: ElementId = (elements.length + 1).toString();
-    const topPosition: number = (nodes + 1) * 50;
+  const addCampaign = () => {
+    const campaignId: ElementId = (nodes.campaigns + 1).toString();
+    const topPosition: number = (nodes.campaigns + 1) * 50;
 
-    const newElements: Elements = [];
+    const newEdges: Elements = [];
 
     const newNode: Node = {
-      id: nodeId,
-      data: { label: `Campaign ${nodeId}` },
-      type: 'default',
+      id: campaignId,
+      data: { label: `Campaign ${campaignId}`, tabindex: nodes.total, campaign: campaignId },
+      type: 'campaign',
       position: { x: 200, y: topPosition },
       draggable: false
     };
 
     const newAddNode: Node = {
-      id: `~${nodeId}`,
-      data: { label: '+' },
+      id: `~${campaignId}`,
+      data: { label: '+', tabindex: nodes.total + 1, campaign: campaignId },
       type: 'adder',
       position: { x: 400, y: topPosition },
       draggable: false
     };
 
-    newElements.push(newNode, newAddNode);
 
-    if (lastNode) {
-      const edgeId: ElementId = (elements.length + 1).toString();
+    if (lastCampaign) {
+      const edgeId: ElementId = `_${campaignId}`;
       const newEdge: Edge = {
         id: edgeId,
-        source: lastNode,
-        target: nodeId
+        source: lastCampaign,
+        target: campaignId
       };
-      newElements.push(newEdge);
+      newEdges.push(newEdge);
     }
 
-    setNodes(nodes + 1);
-    setLastNode(nodeId);
-    setElements((els) => els.concat( ...newElements ));
+    setNodes({
+      campaigns: nodes.campaigns + 1,
+      emails: nodes.emails,
+      adders: nodes.adders + 1,
+      total: nodes.total + 2
+    })
+
+    setLastCampaign(campaignId);
+    setElements([...elements, ...newEdges, newNode, newAddNode]);
+
+    console.log(elements);
   };
 
   const BasicGraph = () => <ReactFlow
@@ -103,9 +153,10 @@ function App() {
     style={graphStyles}
     onConnect={(p) => onConnect(p)}
     onElementClick={onElementClick}
-    nodeTypes={{adder: AdderControl, email: SendEmailControl}}
+    nodeTypes={nodeTypes}
+    onSelectionChange={handleSelectionChange}
   >
-    <button type="button" onClick={addNode} style={{ position: 'absolute', left: 10, top: 10, zIndex: 4 }}>
+    <button type="button" onClick={addCampaign} className="CampaignButton">
       add Campaign
     </button>
   </ReactFlow>;
